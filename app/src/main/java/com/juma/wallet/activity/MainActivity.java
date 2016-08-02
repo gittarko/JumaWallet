@@ -11,10 +11,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.google.gson.Gson;
 import com.juma.wallet.R;
@@ -27,9 +30,11 @@ import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     public static final String JS_INTERFACE = "WalletPay";
 
+    private EditText etUrl;
+    private Button btnLoad;
     private WebView webView;
 
     private JSInterface mJsInterface;
@@ -39,6 +44,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        etUrl = (EditText)findViewById(R.id.et_url);
+        btnLoad = (Button)findViewById(R.id.btn_load);
+
+        btnLoad.setOnClickListener(this);
+
         webView = (WebView)findViewById(R.id.webView);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -60,15 +70,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        String WEB_URL = getResources().getString(R.string.baseUrl);
-        if(TextUtils.isEmpty(WEB_URL)) {
-            showMsg("Url can not be empty!", null ,null);
-            //使用本地测试地址
-            WEB_URL = "file:///android_asset/test.html";
-        }else {
-        }
+    }
 
-        webView.loadUrl(WEB_URL);
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+        if(id == R.id.btn_load) {
+            String WEB_URL = getResources().getString(R.string.baseUrl);
+            WEB_URL = etUrl.getText().toString().trim();
+            if(TextUtils.isEmpty(WEB_URL)) {
+                //使用本地测试地址
+                WEB_URL = "file:///android_asset/test.html";
+            }else {
+            }
+
+            webView.loadUrl(WEB_URL);
+        }
     }
 
     private class JSInterface {
@@ -98,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
         //调用支付
         @JavascriptInterface
-        public void doPayment(String url, String channel, int amount) {
+        public void doPayment(String url, String channel, double amount) {
             Log.d("charge", "charge url is " + url);
             new PaymentTask(url).execute(new PaymentRequest(channel, amount));
         }
@@ -155,9 +172,9 @@ public class MainActivity extends AppCompatActivity {
 
     class PaymentRequest {
         String channel;
-        int amount;
+        double amount;
 
-        public PaymentRequest(String channel, int amount) {
+        public PaymentRequest(String channel, double amount) {
             this.channel = channel;
             this.amount = amount;
         }
@@ -217,4 +234,18 @@ public class MainActivity extends AppCompatActivity {
         builder.create().show();
     }
 
+    @Override
+    protected void onDestroy() {
+        if (webView != null) {
+            webView.stopLoading();
+            webView.setWebChromeClient(null);
+            webView.setWebViewClient(null);
+            webView.getSettings().setJavaScriptEnabled(false);
+            webView.loadDataWithBaseURL("about:blank", "<html></html>", "text/html", "UTF-8", null);
+            webView.removeAllViews();
+            webView.destroy();
+            webView = null;
+        }
+        super.onDestroy();
+    }
 }

@@ -6,10 +6,35 @@
     android:orientation="vertical"
     tools:context="${relativePackage}.${activityClass}" >
 
+    <Button
+        android:id="@+id/btn_load"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="加载网页"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:background="@android:color/holo_blue_light"
+        android:layout_alignParentRight="true"
+        />
+
+    <EditText
+        android:id="@+id/et_url"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_horizontal_margin"
+        android:paddingBottom="@dimen/activity_horizontal_margin"
+        android:hint="请输入一个可用的网页地址"
+        android:textColorHint="@android:color/darker_gray"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@id/btn_load"/>
+
+
     <WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_below="@id/et_url">
 
     </WebView>
 
