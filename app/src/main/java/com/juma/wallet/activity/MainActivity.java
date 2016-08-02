@@ -20,14 +20,19 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.juma.wallet.BuildConfig;
 import com.juma.wallet.R;
 import com.pingplusplus.android.Pingpp;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -93,13 +98,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         private WebView mWebView;
 
         private String mPaymentCallBack = null;
+        private String mChannelsCallBack = null;
 
         public JSInterface(WebView webView) {
             this.mWebView = webView;
         }
 
-        //java调用js
-        protected void execJavaScript(final String jsString) {
+        //java回调JS支付结果
+        protected void execPaymentJavaScript(final String jsString) {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -114,21 +120,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             });
         }
 
-        //调用支付
+        //java回调js支付渠道结果
+        protected void execChannelsJavascript(final String jsString) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mWebView.loadUrl("javascript:" + mChannelsCallBack + "('" + jsString + "');");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+
+        /**
+         * @param url  订单接口
+         * @param jsonData  订单参数
+         */
         @JavascriptInterface
-        public void doPayment(String data) {
+        public void doPayment(String url, String jsonData) {
             if(BuildConfig.DEBUG) {
-                Log.d("charge", "order info:" + data);
+                Log.d("charge", "call server url for order:" + url);
             }
 
-            if(data == null) {
-                showMsg("请求出错", "请检查URL", "URL无法获取charge信息");
-            }else {
-                //执行支付
-                Pingpp.createPayment(MainActivity.this, data);
-            }
-
-//            new PaymentTask(url).execute(new PaymentRequest(channel, amount));
+            new PaymentTask(url).execute(url, jsonData);
         }
 
         @JavascriptInterface
@@ -136,10 +152,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mPaymentCallBack = func;
         }
 
+        /**
+         * JS获取支付渠道
+         * @param url  完整的获取支付渠道接口地址
+         */
+        @JavascriptInterface
+        public void getPayChannels(String url) {
+            //创建OkHttpClient对象，用于稍后发起请求
+            OkHttpClient client = new OkHttpClient();
+            final Request request = new Request.Builder().url(url).build();
+            //根据Request对象发起Get异步Http请求，并添加请求回调
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Request request, Throwable throwable) {
+                    //请求失败
+                    mJsInterface.execChannelsJavascript("");
+                }
+
+                @Override
+                public void onResponse(final Response response) throws IOException {
+                    String result = response.body().string();
+                    mJsInterface.execChannelsJavascript(result);
+                }
+            });
+        }
+
+        /**
+         * java回调JS支付渠道结果
+         * @param func  JS方法名
+         */
+        @JavascriptInterface
+        public void payChannelsCallBackFunc(String func) {
+            this.mChannelsCallBack = func;
+        }
+
     }
 
 
-    class PaymentTask extends AsyncTask<PaymentRequest, Void, String> {
+    class PaymentTask extends AsyncTask<String, Void, String> {
 
         private String url = null;
 
@@ -152,11 +202,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
-        protected String doInBackground(PaymentRequest... pr) {
+        protected String doInBackground(String... pr) {
 
-            PaymentRequest paymentRequest = pr[0];
             String data = null;
-            String json = new Gson().toJson(paymentRequest);
+            String json = pr[1];//new Gson().toJson(paymentRequest);
+            String url = pr[0];
             try {
                 //向Your Ping++ Server SDK请求数据
                 data = postJson(url, json);
@@ -175,20 +225,60 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 showMsg("请求出错", "请检查URL", "URL无法获取charge");
                 return;
             }
+
             Log.d("charge", data);
             Pingpp.createPayment(MainActivity.this, data);
         }
 
     }
 
-    class PaymentRequest {
-        String channel;
-        double amount;
+    class PaymentRequestParam {
+        private String orderNo;     //订单编号
+        private String channel;     //支付渠道
+        private String openId;      //支付id[可选]
+        private String subject;     //商品名称[可选]
+        private String body;        //商品描述[可选]
 
-        public PaymentRequest(String channel, double amount) {
-            this.channel = channel;
-            this.amount = amount;
+        public String getOrderNo() {
+            return orderNo;
         }
+
+        public void setOrderNo(String orderNo) {
+            this.orderNo = orderNo;
+        }
+
+        public String getChannel() {
+            return channel;
+        }
+
+        public void setChannel(String channel) {
+            this.channel = channel;
+        }
+
+        public String getOpenId() {
+            return openId;
+        }
+
+        public void setOpenId(String openId) {
+            this.openId = openId;
+        }
+
+        public String getSubject() {
+            return subject;
+        }
+
+        public void setSubject(String subject) {
+            this.subject = subject;
+        }
+
+        public String getBody() {
+            return body;
+        }
+
+        public void setBody(String body) {
+            this.body = body;
+        }
+
     }
 
     //获取charge信息数据
@@ -223,11 +313,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(TextUtils.isEmpty(errorMsg) && TextUtils.isEmpty(extraMsg)) {
                     Log.d("Charge", "payment info:" + result);
                     //API调用成功
-                    mJsInterface.execJavaScript(result);
+                    mJsInterface.execPaymentJavaScript(result);
                 }else {
                     Log.d("Charge", "payment info:" + errorMsg + ", " + extraMsg);
                     //API调用失败
-                    mJsInterface.execJavaScript("fail");
+                    mJsInterface.execPaymentJavaScript("fail");
                 }
             }
         }
