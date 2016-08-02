@@ -12,11 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }, false);
 
 //开始支付,调用app端支付
-//url: 服务端订单地址
-//channel:支付类型， 请参照ping++支付类型
-//amount：支付价格, double类型
-function executePayment(url, channel, amount) {
-    WalletPay.doPayment(url, channel, amount);
+//data: 服务端返回订单信息
+function executePayment(data) {
+    WalletPay.doPayment(data);
 }
 
 //支付结果回调方法，务必存在

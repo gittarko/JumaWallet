@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.google.gson.Gson;
+import com.juma.wallet.BuildConfig;
 import com.juma.wallet.R;
 import com.pingplusplus.android.Pingpp;
 import com.squareup.okhttp.MediaType;
@@ -115,9 +116,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //调用支付
         @JavascriptInterface
-        public void doPayment(String url, String channel, double amount) {
-            Log.d("charge", "charge url is " + url);
-            new PaymentTask(url).execute(new PaymentRequest(channel, amount));
+        public void doPayment(String data) {
+            if(BuildConfig.DEBUG) {
+                Log.d("charge", "order info:" + data);
+            }
+
+            if(data == null) {
+                showMsg("请求出错", "请检查URL", "URL无法获取charge信息");
+            }else {
+                //执行支付
+                Pingpp.createPayment(MainActivity.this, data);
+            }
+
+//            new PaymentTask(url).execute(new PaymentRequest(channel, amount));
         }
 
         @JavascriptInterface
@@ -209,10 +220,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 showMsg(result, errorMsg, extraMsg);
                 //回调JS，将支付结果通知给web;传入js方法名和结果参数
-                if(TextUtils.isEmpty(errorMsg) || TextUtils.isEmpty(extraMsg)) {
+                if(TextUtils.isEmpty(errorMsg) && TextUtils.isEmpty(extraMsg)) {
+                    Log.d("Charge", "payment info:" + result);
+                    //API调用成功
                     mJsInterface.execJavaScript(result);
                 }else {
-
+                    Log.d("Charge", "payment info:" + errorMsg + ", " + extraMsg);
+                    //API调用失败
+                    mJsInterface.execJavaScript("fail");
                 }
             }
         }
