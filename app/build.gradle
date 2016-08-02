@@ -1,0 +1,110 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.1"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 24
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('./sign/debug.jks')
+            storePassword DEBUG_KEYSTORE_PASSWORD
+            keyAlias 'debug'
+            keyPassword DEBUG_KEY_PASSWORD
+        }
+
+        release {
+//            storeFile file('./sign/release.jks')
+            storePassword RELEASE_KEYSTORE_PASSWORD
+            keyAlias 'client'
+            keyPassword RELEASE_KEY_PASSWORD
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+            debuggable true
+        }
+
+        debug {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            debuggable true
+        }
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    productFlavors {
+        wallet_dev {
+            applicationId "com.juma.wallet"
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [app_name        : "@string/appName",
+                                    app             : "驹马钱包Demo",
+                                    env             : "dev",
+                                    PACKAGE_NAME    : applicationId
+            ]
+        }
+
+        wallet_test {
+            applicationId "com.juma.wallet"
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [app_name        : "@string/appName",
+                                    app             : "驹马钱包Demo",
+                                    env             : "test",
+                                    PACKAGE_NAME    : applicationId
+            ]
+        }
+
+        wallet_offical {
+            applicationId "com.juma.wallet"
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [app_name        : "@string/appName",
+                                    app             : "驹马钱包Demo",
+                                    env             : "official",
+                                    PACKAGE_NAME    : applicationId
+            ]
+        }
+    }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.each {
+            output->
+                def file = outputs[0].outputFile
+                def newFileName = 'juma-' + variant.productFlavors[0].name + '-' + buildType.name + '-' +
+                        variant.productFlavors[0].versionName + '.apk'
+                outputs[0].outputFile = new File(file.parent, newFileName)
+        }
+    }
+
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:24.1.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha4'
+    testCompile 'junit:junit:4.12'
+    compile project(':lib:bdwallet_pay_sdk')
+    compile project(':lib:pingpp')
+}

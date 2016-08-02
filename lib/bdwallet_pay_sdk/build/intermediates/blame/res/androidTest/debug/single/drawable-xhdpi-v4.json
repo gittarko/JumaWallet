@@ -1,0 +1,30 @@
+[
+    {
+        "merged": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-xhdpi-v4\\ebpay_pwdpay_check_bg.png",
+        "source": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\bundles\\debug\\res\\drawable-xhdpi-v4\\ebpay_pwdpay_check_bg.png"
+    },
+    {
+        "merged": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-xhdpi-v4\\ebpay_pwdpay_check_sel.png",
+        "source": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\bundles\\debug\\res\\drawable-xhdpi-v4\\ebpay_pwdpay_check_sel.png"
+    },
+    {
+        "merged": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-xhdpi-v4\\ebpay_pwdpay_check_disable.png",
+        "source": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\bundles\\debug\\res\\drawable-xhdpi-v4\\ebpay_pwdpay_check_disable.png"
+    },
+    {
+        "merged": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-xhdpi-v4\\ebpay_pwdpay_radio_sel.png",
+        "source": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\bundles\\debug\\res\\drawable-xhdpi-v4\\ebpay_pwdpay_radio_sel.png"
+    },
+    {
+        "merged": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-xhdpi-v4\\ebpay_pwdpay_next.png",
+        "source": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\bundles\\debug\\res\\drawable-xhdpi-v4\\ebpay_pwdpay_next.png"
+    },
+    {
+        "merged": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-xhdpi-v4\\wallet_base_indicator_arrow.png",
+        "source": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\bundles\\debug\\res\\drawable-xhdpi-v4\\wallet_base_indicator_arrow.png"
+    },
+    {
+        "merged": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-xhdpi-v4\\ebpay_pwdpay_radio_bg.png",
+        "source": "E:\\workspace\\demo\\Juma-Wallet\\lib\\bdwallet_pay_sdk\\build\\intermediates\\bundles\\debug\\res\\drawable-xhdpi-v4\\ebpay_pwdpay_radio_bg.png"
+    }
+]
