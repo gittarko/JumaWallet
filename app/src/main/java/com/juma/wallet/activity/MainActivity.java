@@ -2,6 +2,7 @@ package com.juma.wallet.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -18,11 +19,16 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.juma.wallet.BuildConfig;
 import com.juma.wallet.R;
+import com.juma.walletpay.script.WalletJsInterface;
+import com.juma.walletpay.web.HDWebChromeClient;
+import com.juma.walletpay.web.HDWebViewClient;
+import com.juma.walletpay.web.WebviewHelper;
 import com.pingplusplus.android.Pingpp;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.MediaType;
@@ -35,6 +41,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     public static final String JS_INTERFACE = "WalletPay";
@@ -43,34 +50,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btnLoad;
     private WebView webView;
 
-    private JSInterface mJsInterface;
-    private Handler mHandler;
+    private WalletJsInterface mJsInterface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         etUrl = (EditText)findViewById(R.id.et_url);
+        etUrl.setText("http://10.101.0.105:8080/forward/customer/order/order.detail.html?waybillId=256&status=4&scrollTop=0&statusId=&page=1");
         btnLoad = (Button)findViewById(R.id.btn_load);
 
         btnLoad.setOnClickListener(this);
 
         webView = (WebView)findViewById(R.id.webView);
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setSupportZoom(false);
-        webView.setHorizontalScrollBarEnabled(false);
-        webView.setVerticalScrollBarEnabled(true);
+        initWebView(webView);
+    }
 
+    private void initWebView(WebView webView) {
         if(Build.VERSION.SDK_INT >= 19) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
+        webView.setWebViewClient(new HDWebViewClient(this) {
+            @Override
+            public void showErrorView() {
+                Toast.makeText(MainActivity.this, "发生错误", Toast.LENGTH_SHORT).show();
+            }
+        });
+        webView.setWebChromeClient(new HDWebChromeClient(MainActivity.this));
+        //设置webview属性
+        WebviewHelper.configWebView(webView);
         //添加JS调用JAVA对象
-        mJsInterface = new JSInterface(webView);
+        mJsInterface = new WalletJsInterface(webView);
         webView.addJavascriptInterface(mJsInterface, JS_INTERFACE);
-        webView.setWebChromeClient(new WebChromeClient());
-        mHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
@@ -94,204 +106,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private class JSInterface {
-        private WebView mWebView;
-
-        private String mPaymentCallBack = null;
-        private String mChannelsCallBack = null;
-
-        public JSInterface(WebView webView) {
-            this.mWebView = webView;
-        }
-
-        //java回调JS支付结果
-        protected void execPaymentJavaScript(final String jsString) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if(TextUtils.isEmpty(mPaymentCallBack))
-                            mPaymentCallBack = "paymentCallBack";
-                        mWebView.loadUrl("javascript:" + mPaymentCallBack + "('" + jsString + "');");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
-
-        //java回调js支付渠道结果
-        protected void execChannelsJavascript(final String jsString) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        mWebView.loadUrl("javascript:" + mChannelsCallBack + "('" + jsString + "');");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
-
-        /**
-         * @param url  订单接口
-         * @param jsonData  订单参数
-         */
-        @JavascriptInterface
-        public void doPayment(String url, String jsonData) {
-            if(BuildConfig.DEBUG) {
-                Log.d("charge", "call server url for order:" + url);
-            }
-
-            new PaymentTask(url).execute(url, jsonData);
-        }
-
-        @JavascriptInterface
-        public void paymentCallBackFunc(String func) {
-            mPaymentCallBack = func;
-        }
-
-        /**
-         * JS获取支付渠道
-         * @param url  完整的获取支付渠道接口地址
-         */
-        @JavascriptInterface
-        public void getPayChannels(String url) {
-            //创建OkHttpClient对象，用于稍后发起请求
-            OkHttpClient client = new OkHttpClient();
-            final Request request = new Request.Builder().url(url).build();
-            //根据Request对象发起Get异步Http请求，并添加请求回调
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Request request, Throwable throwable) {
-                    //请求失败
-                    mJsInterface.execChannelsJavascript("");
-                }
-
-                @Override
-                public void onResponse(final Response response) throws IOException {
-                    String result = response.body().string();
-                    mJsInterface.execChannelsJavascript(result);
-                }
-            });
-        }
-
-        /**
-         * java回调JS支付渠道结果
-         * @param func  JS方法名
-         */
-        @JavascriptInterface
-        public void payChannelsCallBackFunc(String func) {
-            this.mChannelsCallBack = func;
-        }
-
-    }
-
-
-    class PaymentTask extends AsyncTask<String, Void, String> {
-
-        private String url = null;
-
-        public PaymentTask(String url) {
-            this.url = url;
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected String doInBackground(String... pr) {
-
-            String data = null;
-            String json = pr[1];//new Gson().toJson(paymentRequest);
-            String url = pr[0];
-            try {
-                //向Your Ping++ Server SDK请求数据
-                data = postJson(url, json);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return data;
-        }
-
-        /**
-         * 获得服务端的charge，调用ping++ sdk。
-         */
-        @Override
-        protected void onPostExecute(String data) {
-            if(null == data){
-                showMsg("请求出错", "请检查URL", "URL无法获取charge");
-                return;
-            }
-
-            Log.d("charge", data);
-            Pingpp.createPayment(MainActivity.this, data);
-        }
-
-    }
-
-    class PaymentRequestParam {
-        private String orderNo;     //订单编号
-        private String channel;     //支付渠道
-        private String openId;      //支付id[可选]
-        private String subject;     //商品名称[可选]
-        private String body;        //商品描述[可选]
-
-        public String getOrderNo() {
-            return orderNo;
-        }
-
-        public void setOrderNo(String orderNo) {
-            this.orderNo = orderNo;
-        }
-
-        public String getChannel() {
-            return channel;
-        }
-
-        public void setChannel(String channel) {
-            this.channel = channel;
-        }
-
-        public String getOpenId() {
-            return openId;
-        }
-
-        public void setOpenId(String openId) {
-            this.openId = openId;
-        }
-
-        public String getSubject() {
-            return subject;
-        }
-
-        public void setSubject(String subject) {
-            this.subject = subject;
-        }
-
-        public String getBody() {
-            return body;
-        }
-
-        public void setBody(String body) {
-            this.body = body;
-        }
-
-    }
-
-    //获取charge信息数据
-    private static String postJson(String url, String json) throws IOException {
-        MediaType type = MediaType.parse("application/json; charset=utf-8");
-        RequestBody body = RequestBody.create(type, json);
-        Request request = new Request.Builder().url(url).post(body).build();
-
-        OkHttpClient client = new OkHttpClient();
-        Response response = client.newCall(request).execute();
-
-        return response.body().string();
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -308,7 +122,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String errorMsg = data.getExtras().getString("error_msg"); // 错误信息
                 String extraMsg = data.getExtras().getString("extra_msg"); // 错误信息
 
-                showMsg(result, errorMsg, extraMsg);
                 //回调JS，将支付结果通知给web;传入js方法名和结果参数
                 if(TextUtils.isEmpty(errorMsg) && TextUtils.isEmpty(extraMsg)) {
                     Log.d("Charge", "payment info:" + result);

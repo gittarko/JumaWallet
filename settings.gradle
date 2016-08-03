@@ -1,1 +1,6 @@
-include ':app', ':lib:bdwallet_pay_sdk', ':lib:pingpp'
+include ':app',
+//        ':lib:bdwallet_pay_sdk',
+//        ':lib:pingpp',
+        ':walletpay',
+        ':walletpay/pingpp_lib:pingpp',
+        ':walletpay/pingpp_lib:bdwallet_pay_sdk'
