@@ -19,7 +19,6 @@ public final class WebviewHelper {
             return;
         }
         WebSettings webSettings = webView.getSettings();
-
         webSettings.setJavaScriptEnabled(true);
         webSettings.setSupportZoom(false);
 //        webSettings.setUseWideViewPort(true);

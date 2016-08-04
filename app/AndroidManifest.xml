@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.juma.wallet">
+    package="com.lovedriver.hz">
 
     <!-- 通用权限 -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -19,12 +19,13 @@
 
 
     <application
+        android:name="com.lovedriver.hz.MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/appName"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.MainActivity">
+        <activity android:name="com.lovedriver.hz.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -33,8 +33,8 @@ public class PaymentTask extends AsyncTask<String, Void, String> {
     @Override
     protected String doInBackground(String[] pr) {
         String data = null;
-        String json = pr[1];//new Gson().toJson(paymentRequest);
         String url = pr[0];
+        String json = pr[1];
 
         if(TextUtils.isEmpty(url)) {
             //没有地址的支付直接调用ping__ sdk发起支付

@@ -30,6 +30,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile project(':walletpay/pingpp_lib:bdwallet_pay_sdk')
     compile project(':walletpay/pingpp_lib:pingpp')
-    provided files('libs/okio-1.0.0.jar')
-    provided files('libs/okhttp-2.0.0-RC1.jar')
+    compile files('libs/okio-1.0.0.jar')
+    compile files('libs/okhttp-2.0.0-RC1.jar')
+    compile files('libs/gson-2.2.4.jar')
 }

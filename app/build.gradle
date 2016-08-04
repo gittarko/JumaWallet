@@ -18,11 +18,17 @@ android {
             keyPassword DEBUG_KEY_PASSWORD
         }
 
-        release {
-            storeFile file('./sign/release.jks')
-            storePassword RELEASE_KEYSTORE_PASSWORD
-            keyAlias 'release'
-            keyPassword RELEASE_KEY_PASSWORD
+//        release {
+//            storeFile file('./sign/release.jks')
+//            storePassword RELEASE_KEYSTORE_PASSWORD
+//            keyAlias 'release'
+//            keyPassword RELEASE_KEY_PASSWORD
+//        }
+        config {
+            keyAlias 'config'
+            keyPassword '123456'
+            storeFile file('./sign/config.keystore.jks')
+            storePassword '123456'
         }
     }
 
@@ -30,7 +36,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.config
             debuggable true
         }
 
@@ -63,7 +69,7 @@ android {
         }
 
         wallet_test {
-            applicationId "com.juma.wallet"
+            applicationId "com.lovedriver.hz"
             versionCode 1
             versionName "1.0.0"
             manifestPlaceholders = [app_name        : "@string/appName",

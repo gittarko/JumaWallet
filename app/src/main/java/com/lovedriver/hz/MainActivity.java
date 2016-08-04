@@ -1,47 +1,24 @@
-package com.juma.wallet.activity;
+package com.lovedriver.hz;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.webkit.JavascriptInterface;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.juma.wallet.BuildConfig;
-import com.juma.wallet.R;
 import com.juma.walletpay.script.WalletJsInterface;
 import com.juma.walletpay.web.HDWebChromeClient;
 import com.juma.walletpay.web.HDWebViewClient;
 import com.juma.walletpay.web.WebviewHelper;
 import com.pingplusplus.android.Pingpp;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.lang.reflect.Method;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     public static final String JS_INTERFACE = "WalletPay";
@@ -112,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //支付页面返回处理
         if (requestCode == Pingpp.REQUEST_CODE_PAYMENT) {
             if (resultCode == Activity.RESULT_OK) {
+                Toast.makeText(MainActivity.this, "支付回调", Toast.LENGTH_SHORT).show();
                 String result = data.getExtras().getString("pay_result");
                 /* 处理返回值
                  * "success" - payment succeed
